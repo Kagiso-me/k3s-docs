@@ -64,4 +64,4 @@ Using Ansible ensures a repeatable, reliable, and fully automated cluster setup 
 ---
 --
 
-    > *“A Lannister always pays his debts… and in this cluster, every deployment always succeeds.”* 🙏
+    > *“A Lannister always pays his debts… and in this cluster, every deployment always succeeds.”* 
