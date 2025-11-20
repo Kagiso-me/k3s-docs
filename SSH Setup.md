@@ -5,18 +5,6 @@ This guide covers the setup of passwordless SSH configuration from a Raspberry P
 
 ---
 
-## Table of Contents
-
-1. [Prerequisites](#prerequisites)
-2. [Network and Host Configuration](#network-and-host-configuration)
-3. [Setting up Passwordless SSH for Ansible](#setting-up-passwordless-ssh-for-ansible)
-4. [K3s Cluster Overview](#k3s-cluster-overview)
-5. [Ansible Inventory Setup](#ansible-inventory-setup)
-6. [Testing Ansible Connectivity](#testing-ansible-connectivity)
-7. [Security Recommendations](#security-recommendations)
-
----
-
 ## Network and Host Configuration
 
 | Node   | IP Address | Role         |
@@ -25,7 +13,6 @@ This guide covers the setup of passwordless SSH configuration from a Raspberry P
 | jaime  | 10.0.10.12  | Worker       |
 | tyrion | 10.0.10.13  | Worker       |
 | rpi    | 10.0.10.10  | Ansible Host |
-
 
 Update /etc/hosts on the Raspberry Pi to resolve hostnames:
 
@@ -38,6 +25,7 @@ Add the following entries:
 10.0.10.11 tywin
 10.0.10.12 jaime
 10.0.10.13 tyrion
+10.0.10.14 cersei
 ``` 
 
 ## Setting up Passwordless SSH for Ansible
@@ -56,6 +44,7 @@ To enable Ansible to manage your K3s nodes from your Raspberry Pi, configure pas
         ssh-copy-id -i ~/.ssh/id_ed25519.pub user@tywin
         ssh-copy-id -i ~/.ssh/id_ed25519.pub user@jaime
         ssh-copy-id -i ~/.ssh/id_ed25519.pub user@tyrion
+        ssh-copy-id -i ~/.ssh/id_ed25519.pub user@cersei
         ``` 
         - Replace kagiso with your actual SSH username if different.
 
@@ -66,6 +55,7 @@ To enable Ansible to manage your K3s nodes from your Raspberry Pi, configure pas
         ssh tywin
         ssh jaime
         ssh tyrion
+        ssh cersei
         ``` 
         - You should connect directly without being prompted for a password. Use exit to return to the rpi.
 
@@ -102,6 +92,7 @@ To enable Ansible to manage your K3s nodes from your Raspberry Pi, configure pas
   - `tywin` (master/server)
   - `jaime` (worker)
   - `tyrion` (worker)
+  - `cersei` (worker)
 - SSH access to all nodes.
 - Ansible installed on the Raspberry Pi:
 
