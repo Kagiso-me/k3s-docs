@@ -12,7 +12,6 @@ This README documents how to **automate your K3s cluster setup using Ansible**, 
 Once your cluster is up (by the end of **Phase 3**), you’ll handle all operations and add-ons from your control host (`RPi`) using `kubectl`.
 
 ---
-thh
 ## ⚙️ Cluster Topology
 
 | Role   | Hostname | IP Address  | Specs                     |
