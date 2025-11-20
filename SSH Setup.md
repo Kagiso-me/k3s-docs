@@ -65,15 +65,15 @@ To enable Ansible to manage your K3s nodes from your Raspberry Pi, configure pas
 
 
 4. Optional: Disable Password Authentication on Nodes.
-        For enhanced security:
+For enhanced security:
 
-        1. Edit SSH config on each node:
+4.1. Edit SSH config on each node:
         
 ```bash
         sudo nano /etc/ssh/sshd_config
 ``` 
 ---
-        2. Set:
+4.2. Set:
         
 ```bash
         PasswordAuthentication no
@@ -83,25 +83,10 @@ To enable Ansible to manage your K3s nodes from your Raspberry Pi, configure pas
 - You should connect directly without being prompted for a password. Use exit to return to the rpi.
 - Optionally set a passphrase or leave it empty for fully automated login.
 
-         3. Restart SSH service:
+4.3. Restart SSH service:
         
 ```bash
         sudo systemctl restart ssh
 ``` 
 ---
 - Ensure your SSH key works before disabling password login to avoid being locked out!
-
-
-- Raspberry Pi (`rpi`) as your Ansible control node.
-- K3s nodes:
-  - `tywin` (master/server)
-  - `jaime` (worker)
-  - `tyrion` (worker)
-  - `cersei` (worker)
-- SSH access to all nodes.
-- Ansible installed on the Raspberry Pi:
-
-```bash
-sudo apt update && sudo apt install ansible -y
-``` 
----
