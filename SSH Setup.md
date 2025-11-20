@@ -1,4 +1,3 @@
-# K3s Cluster Management Guide
 # Setting up SSH on the cluster nodes
 
 This guide covers the setup of passwordless SSH configuration from a Raspberry Pi (`control-node`) to the cluster nodes (`tywin`, `jaime`, `tyrion`). It also includes best practices for secure and automated operations.
