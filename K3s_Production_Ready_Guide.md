@@ -72,7 +72,11 @@ Save as `prepare-nodes.yml`:
       # 🔍 Explanation:
       # Ansible executes its modules via Python on the remote host.
       # Without this, the agent can’t interpret commands — so it’s mandatory for all targets.
-
+    - name: Ensure essential tools are installed
+      ansible.builtin.apt:
+        name: [curl, iptables, nfs-common]
+        state: present
+        
     - name: Disable swap
       ansible.builtin.command: swapoff -a
       when: ansible_swaptotal_mb > 0
