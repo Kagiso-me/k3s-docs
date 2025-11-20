@@ -9,19 +9,18 @@ Hey there 👋
 
 ## Cluster Overview
 
-This K3s cluster is designed for home lab experimentation, DevOps projects, and learning Kubernetes in a controlled environment. The cluster comprises **3 nodes**, each carefully selected for balance between performance and energy efficiency:
+This K3s cluster is designed for home lab experimentation, DevOps projects, and learning Kubernetes in a controlled environment. The cluster comprises **4 nodes**, each carefully selected for balance between performance and energy efficiency:
 
 | Node Name | Role                      | Specs                                                 |
 |-----------|---------------------------|-------------------------------------------------------|
 | Tywin     | Master/Server             | Intel NUC, Intel i3-5010U, 16GB RAM, 256GB NVME       |
 | Jaime     | Worker                    | Lenovo M93, Intel i5-4570T, 16GB RAM, 512GB 2.5" SSD  |
 | Tyrion    | Worker                    | Lenovo M93, Intel i5-4570T, 16GB RAM, 512GB 2.5" SSD  |
-| Cersei    | Worker                    | Lenovo M93, Intel i5-4570T, 16GB RAM, 512GB 2.5" SSD  | #Still being built. Not yet live
+| Cersei    | Worker                    | Lenovo M93, Intel i5-4570T, 16GB RAM, 512GB 2.5" SSD  |   #Still being built.Not yet live
 | Varys     | Ansible / kubectl host    | Raspberry Pi 3B+, 1GB RAM, 128GB 2.5" SSD             | 
 
-
-*Bonus Node / Local Dev Host:*  
-- **RPi** – Raspberry Pi running `kubectl` for cluster management and dev/test purposes.
+*Bonus Node:*  
+- **RPi (Varys)** – Raspberry Pi running `kubectl` for cluster management.
 
 ---
 
@@ -61,7 +60,6 @@ Using Ansible ensures a repeatable, reliable, and fully automated cluster setup 
 
 - [ ] Complete 3rd node build - Cersei
 - [ ] Replace all worker node CPUs. From i5-4570T to Xeon E3-1260l v3.
-
 
 ---
 --
