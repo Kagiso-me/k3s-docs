@@ -27,36 +27,36 @@ Add the following entries:
 10.0.10.13 tyrion
 10.0.10.14 cersei
 ``` 
-
+---
 ## Setting up Passwordless SSH for Ansible
 
 To enable Ansible to manage your K3s nodes from your Raspberry Pi, configure passwordless SSH.
 
     1. Generate SSH Keys on the Raspberry Pi.
-        ```bash
+ ```bash
         ssh-keygen -t ed25519 -C "rpi-ansible-key"
-        ``` 
+``` 
         - Press Enter to accept the default location (~/.ssh/id_ed25519).
         - Optionally set a passphrase or leave it empty for fully automated login.
 
     2. Copy the Public Key to Each Node.
-        ```bash
+```bash
         ssh-copy-id -i ~/.ssh/id_ed25519.pub user@tywin
         ssh-copy-id -i ~/.ssh/id_ed25519.pub user@jaime
         ssh-copy-id -i ~/.ssh/id_ed25519.pub user@tyrion
         ssh-copy-id -i ~/.ssh/id_ed25519.pub user@cersei
-        ``` 
+``` 
         - Replace kagiso with your actual SSH username if different.
 
     3. Test Passwordless SSH.
         Verify that you can log in without a password:
         
-        ```bash
+```bash
         ssh tywin
         ssh jaime
         ssh tyrion
         ssh cersei
-        ``` 
+``` 
         - You should connect directly without being prompted for a password. Use exit to return to the rpi.
 
 
@@ -65,25 +65,25 @@ To enable Ansible to manage your K3s nodes from your Raspberry Pi, configure pas
 
         1. Edit SSH config on each node:
         
-        ```bash
+```bash
         sudo nano /etc/ssh/sshd_config
-        ``` 
+``` 
 
         2. Set:
         
-        ```bash
+```bash
         PasswordAuthentication no
         ChallengeResponseAuthentication no
 
-        ``` 
+``` 
         - You should connect directly without being prompted for a password. Use exit to return to the rpi.
         - Optionally set a passphrase or leave it empty for fully automated login.
 
          3. Restart SSH service:
         
-        ```bash
+```bash
         sudo systemctl restart ssh
-        ``` 
+``` 
         - Ensure your SSH key works before disabling password login to avoid being locked out!
 
 
