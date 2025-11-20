@@ -49,10 +49,10 @@ To enable Ansible to manage your K3s nodes from your Raspberry Pi, configure pas
 ``` 
 ---
 
-- Replace kagiso with your actual SSH username if different.
+- Replace "user" with your actual SSH username if different.
 
 ### 3. Test Passwordless SSH.
-        Verify that you can log in without a password:
+Verify that you can log in without a password:
         
 ```bash
         ssh tywin
@@ -61,7 +61,7 @@ To enable Ansible to manage your K3s nodes from your Raspberry Pi, configure pas
         ssh cersei
 ``` 
 ---
-- You should connect directly without being prompted for a password. Use exit to return to the rpi.
+- You should connect directly without being prompted for a password.
 
 
 ## Optional: Disable Password Authentication on Nodes
@@ -72,21 +72,16 @@ For enhanced security:
 ```bash
         sudo nano /etc/ssh/sshd_config
 ``` 
----
 4.2. Set:
         
 ```bash
         PasswordAuthentication no
         ChallengeResponseAuthentication no
 ``` 
----
-- You should connect directly without being prompted for a password. Use exit to return to the rpi.
-- Optionally set a passphrase or leave it empty for fully automated login.
 
 4.3. Restart SSH service:
         
 ```bash
         sudo systemctl restart ssh
 ``` 
----
 - Ensure your SSH key works before disabling password login to avoid being locked out!
