@@ -32,7 +32,7 @@ Add the following entries:
 
 To enable Ansible to manage your K3s nodes from your Raspberry Pi, configure passwordless SSH.
 
-1. Generate SSH Keys on the Raspberry Pi.
+### 1. Generate SSH Keys on the Raspberry Pi.
 ```bash
         ssh-keygen -t ed25519 -C "rpi-ansible-key"
 ``` 
@@ -40,7 +40,7 @@ To enable Ansible to manage your K3s nodes from your Raspberry Pi, configure pas
 - Press Enter to accept the default location (~/.ssh/id_ed25519).
 - Optionally set a passphrase or leave it empty for fully automated login.
 
-2. Copy the Public Key to Each Node.
+### 2. Copy the Public Key to Each Node.
 ```bash
         ssh-copy-id -i ~/.ssh/id_ed25519.pub user@tywin
         ssh-copy-id -i ~/.ssh/id_ed25519.pub user@jaime
@@ -51,7 +51,7 @@ To enable Ansible to manage your K3s nodes from your Raspberry Pi, configure pas
 
 - Replace kagiso with your actual SSH username if different.
 
-3. Test Passwordless SSH.
+### 3. Test Passwordless SSH.
         Verify that you can log in without a password:
         
 ```bash
@@ -64,7 +64,7 @@ To enable Ansible to manage your K3s nodes from your Raspberry Pi, configure pas
 - You should connect directly without being prompted for a password. Use exit to return to the rpi.
 
 
-4. Optional: Disable Password Authentication on Nodes.
+## Optional: Disable Password Authentication on Nodes
 For enhanced security:
 
 4.1. Edit SSH config on each node:
