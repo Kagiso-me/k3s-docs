@@ -394,8 +394,4 @@ helm install k8up k8up/k8up -n k8up --create-namespace
 This setup is intentionally modular — built once, reusable everywhere.
 It’s lean, fast, and simple to extend — just how K3s was meant to be.
 
-
-
-> *"Commit your work to the Lord, and your plans will succeed." — Proverbs 16:3* 🙏
-
 ---
