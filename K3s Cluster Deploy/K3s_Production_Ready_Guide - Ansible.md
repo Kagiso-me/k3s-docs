@@ -329,14 +329,13 @@ Now that the nodes are prepped, let’s install K3s using a playbook - fully aut
       environment:
         KUBECONFIG: ./kubeconfig
 
-
+```
+---
 Run it:
 
 ```bash
 ansible-playbook -i inventory.ini install-k3s.yml
 ```
-
----
 
 At this stage - the k3s cluster is up and can be managed from the kubectl node. 
 The following are additional steps to further fine-tune the cluster. 
