@@ -366,24 +366,9 @@ kubectl taint nodes tywin node-role.kubernetes.io/master=:NoSchedule
 
 ---
 
-## 🌐 Phase 4 — Networking & DNS
+## 🌐 Phase 4 — To be updated (Redacted)
 
-Now that your cluster is alive, networking is handled by **Flannel (default)**.
-We’re keeping this simple and reliable — VXLAN overlay just works for homelab setups.
 
-You can optionally add **ExternalDNS** to automate DNS record creation if you use Cloudflare, Route53, etc.
-
-Example (Cloudflare):
-
-```bash
-helm repo add bitnami https://charts.bitnami.com/bitnami
-helm install external-dns bitnami/external-dns \
-  --set provider=cloudflare \
-  --set cloudflare.apiToken=$CF_API_TOKEN \
-  -n kube-system
-```
-
----
 
 
 
