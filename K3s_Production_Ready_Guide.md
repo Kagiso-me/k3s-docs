@@ -7,19 +7,20 @@
 
 > _“Infrastructure that feels like magic — but is actually just well-written YAML.”_
 
-This README documents how to **automate your K3s cluster setup using Ansible**, followed by a complete checklist to make your homelab **secure, scalable, and production-ready**.
+This README documents how to **automate your K3s cluster setup using Ansible**, followed by a few optional steps to make the cluster that much more **secure, scalable, and production-ready**.
 
-Once your cluster is up (by the end of **Phase 3**), you’ll handle all operations and add-ons from your control host (`RPi`) using `kubectl`.
+Once the cluster is up (by the end of **Phase 3**), all operations and add-ons will be handled from the control host (`RPi`) using `kubectl`.
 
 ---
 ## ⚙️ Cluster Topology
 
 | Role   | Hostname | IP Address  | Specs                     |
 |---------|-----------|-------------|----------------------------|
-| Server / Master | `tywin` | 10.0.10.5 | Intel NUC (i3-5010U, 12 GB RAM) |
-| Worker | `jaime` | 10.0.10.4 | Lenovo ThinkCentre (i5-4570T, 16 GB RAM) |
-| Worker | `tyrion` | 10.0.10.3 | Lenovo ThinkCentre (i5-4570T, 16 GB RAM) |
-| Control / Ansible host / kubectl | `rpi` | 10.0.10.2 | Raspberry Pi 3B+ |
+| Server / Master | `tywin` | 10.0.10.11 | Intel NUC (i3-5010U, 12 GB RAM) |
+| Worker | `jaime` | 10.0.10.12 | Lenovo ThinkCentre (i5-4570T, 16 GB RAM) |
+| Worker | `tyrion` | 10.0.10.13 | Lenovo ThinkCentre (i5-4570T, 16 GB RAM) |
+| Worker | `cersei` | 10.0.10.14 | Lenovo ThinkCentre (i5-4570T, 16 GB RAM) | #Node still being build - not live yet
+| Control / Ansible host / kubectl | `varys` | 10.0.10.10 | Raspberry Pi 3B+ |
 
 ---
 
@@ -27,7 +28,7 @@ Once your cluster is up (by the end of **Phase 3**), you’ll handle all operati
 
 ### 🔑 Why this phase matters
 Before we can let Ansible do its thing, every node needs to be ready for remote orchestration.  
-Ansible communicates over SSH and executes Python code on the target — **so we must ensure SSH and Python are ready**.
+Ansible communicates over SSH and executes Python code on the target — **so we must ensure SSH and Python are ready**. See SSH guide - ***"SSH Setup".***
 
 ---
 
@@ -35,11 +36,12 @@ Ansible communicates over SSH and executes Python code on the target — **so we
 
 ```ini
 [master]
-tywin ansible_host=10.0.10.5 ansible_user=kagiso
+tywin ansible_host=10.0.10.11 ansible_user=kagiso
 
 [workers]
-jaime ansible_host=10.0.10.4 ansible_user=kagiso
-tyrion ansible_host=10.0.10.3 ansible_user=kagiso
+jaime ansible_host=10.0.10.12 ansible_user=kagiso
+tyrion ansible_host=10.0.10.13 ansible_user=kagiso
+#Node still being build - not live yet- cersei ansible_host=10.0.10.14 ansible_user=kagiso
 
 [all:vars]
 ansible_python_interpreter=/usr/bin/python3
@@ -121,7 +123,7 @@ ansible-playbook -i inventory.ini prepare-nodes.yml
 
 ## 🏗️ Phase 2 — Installing K3s with Ansible
 
-Now that your nodes are prepped, let’s install K3s using a playbook so you don’t touch any node manually.
+Now that the nodes are prepped, let’s install K3s using a playbook - fully automated.
 
 ### Playbook: `install-k3s.yml`
 
@@ -134,7 +136,7 @@ Now that your nodes are prepped, let’s install K3s using a playbook so you don
     - name: Install K3s server
       ansible.builtin.shell: |
         curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="server \
-          --tls-san 10.0.10.5 \
+          --tls-san 10.0.10.11 \
           --disable traefik \
           --disable servicelb \
           --disable local-storage \
@@ -166,7 +168,7 @@ Now that your nodes are prepped, let’s install K3s using a playbook so you don
 
     - name: Install K3s agent
       ansible.builtin.shell: |
-        curl -sfL https://get.k3s.io | K3S_URL=https://10.0.10.5:6443 \
+        curl -sfL https://get.k3s.io | K3S_URL=https://10.0.10.11:6443 \
         K3S_TOKEN={{ token_file['content'] | b64decode }} sh -
       args:
         creates: /usr/local/bin/k3s-agent
@@ -192,7 +194,7 @@ Now that your nodes are prepped, let’s install K3s using a playbook so you don
       ansible.builtin.replace:
         path: ./kubeconfig
         regexp: '127\.0\.0\.1'
-        replace: '10.0.10.5'
+        replace: '10.0.10.11'
 
 
 ####################################################################
@@ -223,7 +225,7 @@ Now that your nodes are prepped, let’s install K3s using a playbook so you don
             namespace: metallb-system
           spec:
             addresses:
-              - 10.0.10.20-10.0.10.29
+              - 10.0.10.110-10.0.10.129
           ---
           apiVersion: metallb.io/v1beta1
           kind: L2Advertisement
@@ -242,37 +244,24 @@ Now that your nodes are prepped, let’s install K3s using a playbook so you don
 # 3️⃣ - Install Cert-Manager
 ####################################################################
 - name: Deploy Cert-Manager
-  hosts: master
+  hosts: localhost
   become: false
   tasks:
-    - name: Add Jetstack Helm repo
-      ansible.builtin.shell: helm repo add jetstack https://charts.jetstack.io && helm repo update
-
-    - name: Install Cert-Manager
+    - name: Install Cert-Manager via kubectl
       ansible.builtin.shell: |
-        helm upgrade --install cert-manager jetstack/cert-manager \
-          --namespace cert-manager --create-namespace \
-          --set installCRDs=true
-      environment:
-        KUBECONFIG: ./kubeconfig
+        kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.14.0/cert-manager.yaml
 
 
 ####################################################################
 # 4️⃣ - Install Longhorn (storage)
 ####################################################################
 - name: Deploy Longhorn
-  hosts: master
+  hosts: localhost
   become: false
   tasks:
-    - name: Add Longhorn Helm repo
-      ansible.builtin.shell: helm repo add longhorn https://charts.longhorn.io && helm repo update
-
-    - name: Install Longhorn
+    - name: Install Longhorn via kubectl
       ansible.builtin.shell: |
-        helm upgrade --install longhorn longhorn/longhorn \
-          --namespace longhorn-system --create-namespace
-      environment:
-        KUBECONFIG: ./kubeconfig
+        kubectl apply -f https://raw.githubusercontent.com/longhorn/longhorn/v1.9.3/deploy/longhorn.yaml
 
 
 ####################################################################
@@ -297,7 +286,7 @@ Now that your nodes are prepped, let’s install K3s using a playbook so you don
             - "--log.level=INFO"
           deployment:
             enabled: true
-            replicas: 1
+            replicas: 3
           ports:
             web:
               redirections:
@@ -316,7 +305,7 @@ Now that your nodes are prepped, let’s install K3s using a playbook so you don
           providers:
             kubernetesCRD:
               enabled: true
-              ingressClass: traefik-external
+              ingressClass: traefik
               allowExternalNameServices: true
             kubernetesIngress:
               enabled: true
@@ -329,14 +318,14 @@ Now that your nodes are prepped, let’s install K3s using a playbook so you don
             enabled: true
             type: LoadBalancer
             spec:
-              loadBalancerIP: 10.0.10.20
+              loadBalancerIP: 10.0.10.110
           loadBalancerSourceRanges: []
           externalIPs: []
 
     - name: Install Traefik via Helm
       ansible.builtin.shell: |
         helm upgrade --install traefik traefik/traefik \
-          --namespace kube-system \
+          --namespace traefik \
           -f ./traefik-values.yaml
       environment:
         KUBECONFIG: ./kubeconfig
@@ -350,17 +339,12 @@ ansible-playbook -i inventory.ini install-k3s.yml
 
 ---
 
+At this stage - the k3s cluster is up and can be managed from the kubectl node. 
+The following are additional steps to further fine-tune the cluster. 
+
 ## 🧩 Phase 3 — Verify and Label Cluster
 
 After installation, you can now manage the cluster from your control host (`RPi`).
-
-### Get kubeconfig
-
-```bash
-scp kagiso@10.0.10.5:/etc/rancher/k3s/k3s.yaml ~/kubeconfig
-sed -i 's/127.0.0.1/10.0.10.5/' ~/kubeconfig
-export KUBECONFIG=~/kubeconfig
-```
 
 ### Verify nodes
 
@@ -374,6 +358,7 @@ kubectl get nodes -o wide
 kubectl label node tywin role=master
 kubectl label node jaime role=worker
 kubectl label node tyrion role=worker
+#kubectl label node cersei role=worker
 kubectl taint nodes tywin node-role.kubernetes.io/master=:NoSchedule
 ```
 
@@ -400,77 +385,9 @@ helm install external-dns bitnami/external-dns \
 
 ---
 
-## 🚪 Phase 5 — Ingress & TLS (Traefik + cert-manager)
 
-Traefik routes external traffic into the cluster, while cert-manager automates your TLS certificates.
 
-### Install cert-manager
-
-```bash
-kubectl create namespace cert-manager
-helm repo add jetstack https://charts.jetstack.io
-helm install cert-manager jetstack/cert-manager --namespace cert-manager --set installCRDs=true
-```
-
-### Install Traefik via Helm
-
-```bash
-helm repo add traefik https://traefik.github.io/charts
-helm install traefik traefik/traefik -n traefik --create-namespace -f - <<EOF
-additionalArguments:
-  - "--providers.kubernetesingress"
-  - "--api.insecure=false"
-service:
-  type: NodePort
-EOF
-```
-
----
-
-## 💾 Phase 6 — Persistent Storage (Longhorn)
-
-Longhorn gives you distributed, resilient storage.
-
-```bash
-kubectl apply -f https://raw.githubusercontent.com/longhorn/longhorn/v1.4.3/deploy/longhorn.yaml
-```
-
-Access the Longhorn UI through NodePort or Ingress, and set your backup target (NFS/S3).
-
----
-
-## 📊 Phase 7 — Monitoring & Logging
-
-### Prometheus + Grafana
-
-```bash
-helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-helm install kube-prometheus prometheus-community/kube-prometheus-stack \
-  -n monitoring --create-namespace
-```
-
-### Loki + Promtail
-
-```bash
-helm repo add grafana https://grafana.github.io/helm-charts
-helm install loki grafana/loki-stack -n logging --create-namespace
-```
-
----
-
-## 🔐 Phase 8 — Authentication (Authelia)
-
-Add SSO and MFA to your dashboards and services via Authelia.
-You’ll integrate it with Traefik middleware for access control.
-
-```bash
-helm repo add authelia https://charts.authelia.io
-helm install authelia authelia/authelia -n authelia --create-namespace -f authelia-values.yaml
-```
-
----
-
-## 💾 Phase 9 — Backups & DR
+## 💾 Phase 5 — Backups & DR
 
 ### Etcd snapshots
 
@@ -488,55 +405,13 @@ helm install k8up k8up/k8up -n k8up --create-namespace
 
 ---
 
-## 📣 Phase 10 — Alerts & Notifications
-
-Alertmanager (from Prometheus) can notify via Slack, Teams, or webhook.
-
-Example Slack config:
-
-```yaml
-receivers:
-- name: 'slack'
-  slack_configs:
-  - api_url: 'https://hooks.slack.com/services/TOKEN'
-    channel: '#alerts'
-```
-
----
-
-## 🧹 Phase 11 — Maintenance & Best Practices
-
-* Regularly **snapshot etcd** before upgrades.
-* Use **namespaces** for clear separation.
-* Apply **resource limits** and **PodDisruptionBudgets**.
-* Secure secrets with **Sealed Secrets** or **SOPS**.
-* Adopt **GitOps (ArgoCD or Flux)** for deployment automation.
-
----
-
-## ✅ Quick Checklist
-
-* [ ] All nodes `Ready`
-* [ ] `kube-system` healthy
-* [ ] Longhorn healthy
-* [ ] TLS certs active
-* [ ] Grafana dashboards reachable
-* [ ] Backups verified
-
----
-
 ## 🧠 Closing Thoughts
 
 This setup is intentionally modular — built once, reusable everywhere.
 It’s lean, fast, and simple to extend — just how K3s was meant to be.
 
-> *"Jehovah provides the wisdom; we just write the playbooks."* 🙏
+
+
+> *"Commit your work to the Lord, and your plans will succeed." — Proverbs 16:3* 🙏
 
 ---
-
-```
-
----
-
-Would you like me to generate a downloadable `.md` file for this content now (so you can upload it straight to your GitHub repo)?
-```
