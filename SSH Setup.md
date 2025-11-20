@@ -1,6 +1,6 @@
 # Setting up SSH on the cluster nodes
 
-This guide covers the setup of passwordless SSH configuration from a Raspberry Pi (`control-node`) to the cluster nodes (`tywin`, `jaime`, `tyrion`). It also includes best practices for secure and automated operations.
+This guide covers the setup of passwordless SSH configuration from a Raspberry Pi (`control-node`) to the cluster nodes (`tywin`, `jaime`, `tyrion`, `cersei`). It also includes best practices for secure and automated operations.
 
 ---
 
@@ -11,6 +11,7 @@ This guide covers the setup of passwordless SSH configuration from a Raspberry P
 | tywin  | 10.0.10.11  | Master       |
 | jaime  | 10.0.10.12  | Worker       |
 | tyrion | 10.0.10.13  | Worker       |
+| cersei | 10.0.10.13  | Worker       |
 | rpi    | 10.0.10.10  | Ansible Host |
 
 Update /etc/hosts on the Raspberry Pi to resolve hostnames:
