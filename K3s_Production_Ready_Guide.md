@@ -1,8 +1,3 @@
-**Production-grade K3s cluster build guide**, designed for **Ansible-based automation** and **kubectl-based management thereafter**.
-
----
-
-````markdown
 # 🧩 K3s Production-Ready Cluster — Automated with Ansible
 
 > _“Infrastructure that feels like magic — but is actually just well-written YAML.”_
@@ -28,7 +23,7 @@ Once the cluster is up (by the end of **Phase 3**), all operations and add-ons w
 
 ### 🔑 Why this phase matters
 Before we can let Ansible do its thing, every node needs to be ready for remote orchestration.  
-Ansible communicates over SSH and executes Python code on the target — **so we must ensure SSH and Python are ready**. See SSH guide - ***"SSH Setup".***
+Ansible communicates over SSH and executes Python code on the target — **so we must ensure SSH and Python are ready**. See SSH guide - ***"[SSH Setup](https://github.com/Kagiso-me/k3s-docs/blob/master/SSH%20Setup.md)".***  
 
 ---
 
