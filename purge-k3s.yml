@@ -1,0 +1,75 @@
+- name: Purge K3s from all nodes
+  hosts: all
+  become: yes
+  tasks:
+    - name: Stop K3s service if running
+      ansible.builtin.systemd:
+        name: k3s
+        state: stopped
+        enabled: no
+      ignore_errors: yes
+
+    - name: Stop K3s agent service if running
+      ansible.builtin.systemd:
+        name: k3s-agent
+        state: stopped
+        enabled: no
+      ignore_errors: yes
+
+    - name: Remove K3s binary
+      ansible.builtin.file:
+        path: /usr/local/bin/k3s
+        state: absent
+
+    - name: Remove K3s symlinks
+      ansible.builtin.file:
+        path: /etc/systemd/system/k3s.service
+        state: absent
+      ignore_errors: yes
+
+    - name: Remove K3s agent symlinks
+      ansible.builtin.file:
+        path: /etc/systemd/system/k3s-agent.service
+        state: absent
+      ignore_errors: yes
+
+    - name: Remove K3s data directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+        recurse: yes
+      loop:
+        - /etc/rancher/k3s
+        - /var/lib/rancher/k3s
+        - /var/lib/kubelet
+        - /var/lib/kube-proxy
+        - /var/lib/cni
+        - /var/lib/calico
+        - /var/lib/containerd
+        - /var/run/k3s
+        - /var/log/k3s
+
+    - name: Reload systemd after removing services
+      ansible.builtin.systemd:
+        daemon_reload: yes
+
+    - name: Remove leftover CNI network interfaces
+      ansible.builtin.shell: |
+        ip link | grep cni | awk '{print $2}' | sed 's/://' | xargs -r ip link delete
+      ignore_errors: yes
+
+    - name: Remove iptables rules set by K3s
+      ansible.builtin.shell: iptables -F
+      ignore_errors: yes
+
+    - name: Remove iptables NAT table rules set by K3s
+      ansible.builtin.shell: iptables -t nat -F
+      ignore_errors: yes
+
+    - name: Remove iptables mangle table rules set by K3s
+      ansible.builtin.shell: iptables -t mangle -F
+      ignore_errors: yes
+
+    - name: Remove iptables raw table rules set by K3s
+      ansible.builtin.shell: iptables -t raw -F
+      ignore_errors: yes
