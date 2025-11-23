@@ -120,6 +120,6 @@ ansible_python_interpreter=/usr/bin/python3
 
 **Purge K3s from all nodes (if needed):**
 ```bash
-ansible-playbook -i inventory purge-k3s.yml
+ansible-playbook -i inventory.ini purge-k3s.yml
 ```
 ---
