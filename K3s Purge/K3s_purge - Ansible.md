@@ -80,7 +80,6 @@ ansible_python_interpreter=/usr/bin/python3
       ansible.builtin.file:
         path: "{{ item }}"
         state: absent
-        recurse: yes
       loop:
         - /etc/rancher/k3s
         - /var/lib/rancher/k3s
