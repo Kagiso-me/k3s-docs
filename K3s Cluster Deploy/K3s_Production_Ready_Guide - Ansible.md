@@ -251,16 +251,16 @@ Now that the nodes are prepped, let’s install K3s using a playbook - fully aut
         kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.14.0/cert-manager.yaml
 
 
-####################################################################
-# 4️⃣ - Install Longhorn (storage)
-####################################################################
-- name: Deploy Longhorn
-  hosts: localhost
-  become: false
-  tasks:
-    - name: Install Longhorn via kubectl
-      ansible.builtin.shell: |
-        kubectl apply -f https://raw.githubusercontent.com/longhorn/longhorn/v1.9.3/deploy/longhorn.yaml
+#  ####################################################################
+#  ~~# 4️⃣ - Install Longhorn (storage)~~
+#  ####################################################################
+#  ~~- name: Deploy Longhorn~~
+#  ~~  hosts: localhost~~
+#  ~~  become: false~~
+#  ~~  tasks:~~
+#  ~~    - name: Install Longhorn via kubectl~~
+#  ~~      ansible.builtin.shell: |~~
+#  ~~        kubectl apply -f https://raw.githubusercontent.com/longhorn/longhorn/v1.9.3/deploy/longhorn.yaml~~
 
 
 ####################################################################
