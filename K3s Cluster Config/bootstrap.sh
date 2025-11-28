@@ -2,7 +2,7 @@
 set -e
 
 echo "=== Installing MetalLB ==="
-kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/main/config/manifests/metallb.yaml
+kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.15.2/config/manifests/metallb-native.yaml
 
 cat <<EOF | kubectl apply -f -
 apiVersion: metallb.io/v1beta1
