@@ -66,9 +66,4 @@
         regexp: '127\.0\.0\.1'
         replace: '10.0.10.11'
 
-
 ---
-Run it:
-
-```bash
-ansible-playbook -i inventory.ini install-k3s.yml
