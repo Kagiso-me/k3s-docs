@@ -64,12 +64,12 @@ helm repo update
 
 # Ensure traefik-values.yaml exists in the same directory
 helm upgrade --install traefik traefik/traefik \
-  --namespace kube-system \
+  --namespace traefik \
   --create-namespace \
   --values traefik-values.yaml
 
 echo "=== Bootstrap complete! ==="
-kubectl get pods -n kube-system
+kubectl get pods -n traefik
 
 ```
 ---
@@ -139,8 +139,8 @@ externalIPs: []
 Check the status of your deployments:
 
 ```bash
-kubectl get pods -n kube-system
-kubectl get svc -n kube-system
+kubectl get pods -n traefik
+kubectl get svc -n traefik
 kubectl get ingressclass
 ```
 
