@@ -35,7 +35,7 @@ You can bootstrap the cluster by running:
 set -e
 
 echo "=== Installing MetalLB ==="
-kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.13.14/config/manifests/metallb-native.yaml
+kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.15.2/config/manifests/metallb-native.yaml
 
 cat <<EOF | kubectl apply -f -
 apiVersion: metallb.io/v1beta1
