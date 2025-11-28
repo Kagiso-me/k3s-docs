@@ -43,9 +43,8 @@
       args:
         creates: /usr/local/bin/k3s-agent
 
-
 ####################################################################
-# - Configure Kubeconfig on Ansible control host (for Helm)
+# - Configure Kubeconfig on Ansible control host (for Helm/kubectl)
 ####################################################################
 - name: Retrieve kubeconfig from master
   hosts: master
@@ -57,13 +56,24 @@
         dest: "{{ lookup('env','HOME') }}/kubeconfig"
         flat: yes
 
-- name: Prepare kubeconfig for local Helm/Kubectl use
+- name: Prepare kubeconfig and ensure kubectl is installed
   hosts: localhost
   tasks:
-    - name: Replace localhost with master IP
+    - name: Replace localhost with master IP in kubeconfig
       ansible.builtin.replace:
         path: "{{ lookup('env','HOME') }}/kubeconfig"
         regexp: '127\.0\.0\.1'
         replace: '10.0.10.11'
 
----
+    - name: Ensure kubectl is installed on the Ansible controller (RPi)
+  hosts: localhost
+  become: yes
+  tasks:
+    - name: Download kubectl to /tmp
+      ansible.builtin.get_url:
+        url: "https://dl.k8s.io/release/{{ lookup('pipe','curl -L -s https://dl.k8s.io/release/stable.txt') }}/bin/linux/arm64/kubectl"
+        dest: /tmp/kubectl
+        mode: '0755'
+
+    - name: Move kubectl to /usr/local/bin
+      ansible.builtin.command: mv /tmp/kubectl /usr/local/bin/kubectl
