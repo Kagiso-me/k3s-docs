@@ -77,7 +77,7 @@ helm upgrade --install traefik traefik/traefik \
   --values traefik-values.yaml
 ```
 
-traefik-values.yaml
+`traefik-values.yaml`
 ```bash
 globalArguments:
   - "--global.sendanonymoususage=false"
