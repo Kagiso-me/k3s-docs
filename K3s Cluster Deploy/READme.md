@@ -189,7 +189,7 @@ Now that the nodes are prepped, let’s install K3s using a playbook - fully aut
   tasks:
     - name: Replace localhost with master IP
       ansible.builtin.replace:
-        path: ./kubeconfig
+        path: "{{ lookup('env','HOME') }}/kubeconfig"
         regexp: '127\.0\.0\.1'
         replace: '10.0.10.11'
 
