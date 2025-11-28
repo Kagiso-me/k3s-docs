@@ -153,6 +153,7 @@ Now that the nodes are prepped, let’s install K3s using a playbook - fully aut
         dest: ./k3s_token.txt
         content: "{{ k3s_token.stdout }}"
 
+
 - name: Install K3s on workers
   hosts: workers
   become: yes
@@ -172,7 +173,7 @@ Now that the nodes are prepped, let’s install K3s using a playbook - fully aut
 
 
 ####################################################################
-# - Configure Kubeconfig on Ansible control host (for Helm)
+# Retrieve kubeconfig from master onto Ansible host
 ####################################################################
 - name: Retrieve kubeconfig from master
   hosts: master
@@ -184,14 +185,45 @@ Now that the nodes are prepped, let’s install K3s using a playbook - fully aut
         dest: "{{ lookup('env','HOME') }}/kubeconfig"
         flat: yes
 
-- name: Prepare kubeconfig for local Helm/Kubectl use
+
+####################################################################
+# Fix kubeconfig + install kubectl on the controller (RPi)
+####################################################################
+- name: Prepare kubeconfig and install kubectl
   hosts: localhost
   tasks:
-    - name: Replace localhost with master IP
+    - name: Replace localhost with master IP in kubeconfig
       ansible.builtin.replace:
         path: "{{ lookup('env','HOME') }}/kubeconfig"
         regexp: '127\.0\.0\.1'
         replace: '10.0.10.11'
+
+    - name: Check if kubectl exists
+      ansible.builtin.command: kubectl version --client --short
+      register: kubectl_check
+      ignore_errors: true
+
+    - name: Install kubectl for kagiso user (no sudo)
+      ansible.builtin.shell: |
+        set -e
+        ARCH=arm64
+        VERSION=$(curl -L -s https://dl.k8s.io/release/stable.txt)
+
+        # Download kubectl binary + checksum
+        curl -LO "https://dl.k8s.io/release/$VERSION/bin/linux/${ARCH}/kubectl"
+        curl -LO "https://dl.k8s.io/release/$VERSION/bin/linux/${ARCH}/kubectl.sha256"
+
+        # Verify checksum
+        echo "$(cat kubectl.sha256)  kubectl" | sha256sum --check
+
+        # Install locally without sudo
+        chmod +x kubectl
+        mkdir -p ~/.local/bin
+        mv kubectl ~/.local/bin/kubectl
+      args:
+        executable: /bin/bash
+      when: kubectl_check.rc != 0
+
 ```
 
 ---
