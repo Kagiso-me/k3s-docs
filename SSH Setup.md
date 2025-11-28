@@ -42,10 +42,9 @@ To enable Ansible to manage your K3s nodes from your Raspberry Pi, configure pas
 
 ### 2. Copy the Public Key to Each Node.
 ```bash
-        ssh-copy-id -i ~/.ssh/id_ed25519.pub kagiso@tywin
-        ssh-copy-id -i ~/.ssh/id_ed25519.pub kagiso@jaime
-        ssh-copy-id -i ~/.ssh/id_ed25519.pub kagiso@tyrion
-        ssh-copy-id -i ~/.ssh/id_ed25519.pub kagiso@cersei
+        ssh-copy-id -i ~/.ssh/id_ed25519.pub user@tywin
+        ssh-copy-id -i ~/.ssh/id_ed25519.pub user@jaime
+        ssh-copy-id -i ~/.ssh/id_ed25519.pub user@tyrion
 ``` 
 ---
 
