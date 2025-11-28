@@ -28,7 +28,7 @@ You can bootstrap the cluster by running:
 ```
 
 ---
-bootstrap.sh
+`bootstrap.sh`
 
 ```bash
 #!/bin/bash
