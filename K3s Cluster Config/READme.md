@@ -55,7 +55,7 @@ MetalLB provides LoadBalancer support in bare-metal K3s clusters.
 ### Installation
 
 ```bash
-kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.18.0/cert-manager.yaml
+kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.19.1/cert-manager.yaml
 ```
 ### Notes:
 - Ensure your cluster can reach the ACME server if using Let's Encrypt
