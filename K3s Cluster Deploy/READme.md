@@ -192,7 +192,7 @@ Now that the nodes are prepped, let’s install K3s using a playbook - fully aut
         path: "{{ lookup('env','HOME') }}/kubeconfig"
         regexp: '127\.0\.0\.1'
         replace: '10.0.10.11'
-
+```
 
 ---
 Run it:
