@@ -45,7 +45,7 @@
 
 
 ####################################################################
-# 1️⃣ - Configure Kubeconfig on Ansible control host (for Helm)
+# - Configure Kubeconfig on Ansible control host (for Helm)
 ####################################################################
 - name: Retrieve kubeconfig from master
   hosts: master
@@ -66,142 +66,9 @@
         regexp: '127\.0\.0\.1'
         replace: '10.0.10.11'
 
-####################################################################
-# 2️⃣ - Install MetalLB
-####################################################################
-- name: Deploy MetalLB
-  hosts: localhost
-  become: false
-  tasks:
-    - name: Add MetalLB Helm repo
-      ansible.builtin.command: >
-        helm repo add metallb https://metallb.github.io/metallb
-      ignore_errors: true
 
-    - name: Update Helm repos
-      ansible.builtin.command: helm repo update
+---
+Run it:
 
-    - name: Install MetalLB via Helm
-      ansible.builtin.command: >
-        helm upgrade --install metallb metallb/metallb
-        --namespace metallb-system
-        --create-namespace
-      environment:
-        KUBECONFIG: "{{ playbook_dir }}/kubeconfig"
-
-    - name: Create MetalLB address pool manifest
-      ansible.builtin.copy:
-        dest: "{{ playbook_dir }}/metallb-config.yaml"
-        content: |
-          apiVersion: metallb.io/v1beta1
-          kind: IPAddressPool
-          metadata:
-            name: default-address-pool
-            namespace: metallb-system
-          spec:
-            addresses:
-              - 10.0.10.110-10.0.10.129
-          ---
-          apiVersion: metallb.io/v1beta1
-          kind: L2Advertisement
-          metadata:
-            name: l2adv
-            namespace: metallb-system
-
-    - name: Apply MetalLB address pool config
-      ansible.builtin.command: >
-        kubectl apply -f {{ playbook_dir }}/metallb-config.yaml
-      environment:
-        KUBECONFIG: "{{ playbook_dir }}/kubeconfig"
-
-
-
-####################################################################
-# 3️⃣ - Install Cert-Manager
-####################################################################
-- name: Deploy Cert-Manager
-  hosts: localhost
-  become: false
-  tasks:
-    - name: Install Cert-Manager via kubectl
-      ansible.builtin.shell: |
-        kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.14.0/cert-manager.yaml
-
-
-#  ####################################################################
-#  # 4️⃣ - Install Longhorn (storage)
-#  ####################################################################
-#  - name: Deploy Longhorn
-#    hosts: localhost
-#    become: false
-#    tasks:
-#      - name: Install Longhorn via kubectl
-#        ansible.builtin.shell: |
-#          kubectl apply -f https://raw.githubusercontent.com/longhorn/longhorn/v1.9.3/deploy/longhorn.yaml
-
-
-####################################################################
-# 5️⃣ - Install Traefik (custom values)
-####################################################################
-- name: Deploy Traefik with custom values
-  hosts: master
-  become: false
-  tasks:
-    - name: Add Traefik Helm repo
-      ansible.builtin.shell: helm repo add traefik https://traefik.github.io/charts && helm repo update
-
-    - name: Copy Traefik values file
-      ansible.builtin.copy:
-        dest: ./traefik-values.yaml
-        content: |
-          globalArguments:
-            - "--global.sendanonymoususage=false"
-            - "--global.checknewversion=false"
-          additionalArguments:
-            - "--serversTransport.insecureSkipVerify=true"
-            - "--log.level=INFO"
-          deployment:
-            enabled: true
-            replicas: 3
-          ports:
-            web:
-              redirections:
-                entrypoint:
-                  to: websecure
-                  priority: 10
-            websecure:
-              http3:
-                enabled: true
-              advertisedPort: 443
-              tls:
-                enabled: true
-          ingressRoute:
-            dashboard:
-              enabled: false
-          providers:
-            kubernetesCRD:
-              enabled: true
-              ingressClass: traefik
-              allowExternalNameServices: true
-            kubernetesIngress:
-              enabled: true
-              allowExternalNameServices: true
-              publishedService:
-                enabled: false
-          rbac:
-            enabled: true
-          service:
-            enabled: true
-            type: LoadBalancer
-            spec:
-              loadBalancerIP: 10.0.10.110
-          loadBalancerSourceRanges: []
-          externalIPs: []
-
-    - name: Install Traefik via Helm
-      ansible.builtin.shell: |
-        helm upgrade --install traefik traefik/traefik \
-          --namespace traefik \
-          -f ./traefik-values.yaml
-      environment:
-        KUBECONFIG: ./kubeconfig
+```bash
+ansible-playbook -i inventory.ini install-k3s.yml
