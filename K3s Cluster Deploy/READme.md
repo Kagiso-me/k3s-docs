@@ -14,7 +14,6 @@ Once the cluster is up (by the end of **Phase 3**), all operations and add-ons w
 | Server / Master | `tywin` | 10.0.10.11 | Intel NUC (i3-5010U, 12 GB RAM) |
 | Worker | `jaime` | 10.0.10.12 | Lenovo ThinkCentre (i5-4570T, 16 GB RAM) |
 | Worker | `tyrion` | 10.0.10.13 | Lenovo ThinkCentre (i5-4570T, 16 GB RAM) |
-| Worker | `cersei` | 10.0.10.14 | Lenovo ThinkCentre (i5-4570T, 16 GB RAM) | #Node still being build - not live yet
 | Control / Ansible host / kubectl | `varys` | 10.0.10.10 | Raspberry Pi 3B+ |
 
 ---
@@ -36,7 +35,6 @@ tywin ansible_host=10.0.10.11 ansible_user=kagiso
 [workers]
 jaime ansible_host=10.0.10.12 ansible_user=kagiso
 tyrion ansible_host=10.0.10.13 ansible_user=kagiso
-#Node still being build - not live yet- cersei ansible_host=10.0.10.14 ansible_user=kagiso
 
 [all:vars]
 ansible_python_interpreter=/usr/bin/python3
