@@ -23,7 +23,7 @@ spec: {}
 EOF
 
 echo "=== Installing Cert-Manager ==="
-kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.18.0/cert-manager.yaml
+kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.19.1/cert-manager.yaml
 
 echo "=== Deploying Traefik with custom values ==="
 helm repo add traefik https://traefik.github.io/charts
