@@ -32,7 +32,7 @@ To enable Ansible to manage your K3s nodes from your Raspberry Pi, configure pas
 
 ### 1. Generate SSH Keys on the Raspberry Pi.
 ```bash
-        ssh-keygen -t ed25519 -C "rpi-ansible-key"
+        ssh-keygen -t ed25519 -C "ansible-key"
 ``` 
 ---
 - Press Enter to accept the default location (~/.ssh/id_ed25519).
