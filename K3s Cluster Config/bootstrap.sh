@@ -31,9 +31,9 @@ helm repo update
 
 # Ensure traefik-values.yaml exists in the same directory
 helm upgrade --install traefik traefik/traefik \
-  --namespace kube-system \
+  --namespace traefik \
   --create-namespace \
   --values traefik-values.yaml
 
 echo "=== Bootstrap complete! ==="
-kubectl get pods -n kube-system
+kubectl get pods -n traefik
