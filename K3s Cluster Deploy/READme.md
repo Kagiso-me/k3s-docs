@@ -176,12 +176,12 @@ Now that the nodes are prepped, let’s install K3s using a playbook - fully aut
 ####################################################################
 - name: Retrieve kubeconfig from master
   hosts: master
-  become: yes
   tasks:
     - name: Fetch kubeconfig
+      become: yes
       ansible.builtin.fetch:
         src: /etc/rancher/k3s/k3s.yaml
-        dest: ./kubeconfig
+        dest: "{{ lookup('env','HOME') }}/kubeconfig"
         flat: yes
 
 - name: Prepare kubeconfig for local Helm/Kubectl use
