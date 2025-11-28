@@ -125,6 +125,7 @@ Now that the nodes are prepped, let’s install K3s using a playbook - fully aut
 ### Playbook: `install-k3s.yml`
 
 ```yaml
+
 ---
 - name: Install K3s on master
   hosts: master
@@ -153,7 +154,9 @@ Now that the nodes are prepped, let’s install K3s using a playbook - fully aut
         dest: ./k3s_token.txt
         content: "{{ k3s_token.stdout }}"
 
-
+# ----------------------------------------------------------
+# Workers
+# ----------------------------------------------------------
 - name: Install K3s on workers
   hosts: workers
   become: yes
@@ -171,10 +174,9 @@ Now that the nodes are prepped, let’s install K3s using a playbook - fully aut
       args:
         creates: /usr/local/bin/k3s-agent
 
-
-####################################################################
-# Retrieve kubeconfig from master onto Ansible host
-####################################################################
+# ----------------------------------------------------------
+# kubeconfig setup on Ansible controller
+# ----------------------------------------------------------
 - name: Retrieve kubeconfig from master
   hosts: master
   tasks:
@@ -182,47 +184,48 @@ Now that the nodes are prepped, let’s install K3s using a playbook - fully aut
       become: yes
       ansible.builtin.fetch:
         src: /etc/rancher/k3s/k3s.yaml
-        dest: "{{ lookup('env','HOME') }}/kubeconfig"
+        dest: "{{ lookup('env','HOME') }}/.kube/config"
         flat: yes
 
-
-####################################################################
-# Fix kubeconfig + install kubectl on the controller (RPi)
-####################################################################
 - name: Prepare kubeconfig and install kubectl
   hosts: localhost
   tasks:
+
+    - name: Ensure ~/.kube directory exists
+      ansible.builtin.file:
+        path: "{{ lookup('env','HOME') }}/.kube"
+        state: directory
+        mode: '0700'
+
     - name: Replace localhost with master IP in kubeconfig
       ansible.builtin.replace:
-        path: "{{ lookup('env','HOME') }}/kubeconfig"
+        path: "{{ lookup('env','HOME') }}/.kube/config"
         regexp: '127\.0\.0\.1'
         replace: '10.0.10.11'
 
-    - name: Check if kubectl exists
-      ansible.builtin.command: kubectl version --client --short
-      register: kubectl_check
-      ignore_errors: true
+    # ------------------------------------------------------
+    # kubectl installation (ARM64, non-sudo compatible)
+    # ------------------------------------------------------
+    - name: Download kubectl (binary)
+      ansible.builtin.get_url:
+        url: "https://dl.k8s.io/release/{{ lookup('pipe','curl -L -s https://dl.k8s.io/release/stable.txt') }}/bin/linux/arm64/kubectl"
+        dest: /tmp/kubectl
+        mode: '0755'
 
-    - name: Install kubectl for kagiso user (no sudo)
+    - name: Install kubectl to ~/.local/bin for non-root user
       ansible.builtin.shell: |
-        set -e
-        ARCH=arm64
-        VERSION=$(curl -L -s https://dl.k8s.io/release/stable.txt)
-
-        # Download kubectl binary + checksum
-        curl -LO "https://dl.k8s.io/release/$VERSION/bin/linux/${ARCH}/kubectl"
-        curl -LO "https://dl.k8s.io/release/$VERSION/bin/linux/${ARCH}/kubectl.sha256"
-
-        # Verify checksum
-        echo "$(cat kubectl.sha256)  kubectl" | sha256sum --check
-
-        # Install locally without sudo
-        chmod +x kubectl
         mkdir -p ~/.local/bin
-        mv kubectl ~/.local/bin/kubectl
+        mv /tmp/kubectl ~/.local/bin/kubectl
+        chmod +x ~/.local/bin/kubectl
       args:
         executable: /bin/bash
-      when: kubectl_check.rc != 0
+
+    - name: Ensure ~/.local/bin is in PATH permanently
+      ansible.builtin.lineinfile:
+        path: "{{ lookup('env','HOME') }}/.bashrc"
+        regexp: 'export PATH=.*\.local/bin'
+        line: 'export PATH="$HOME/.local/bin:$PATH"'
+        insertafter: EOF
 
 ```
 
