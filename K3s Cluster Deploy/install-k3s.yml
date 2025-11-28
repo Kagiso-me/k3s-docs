@@ -49,12 +49,12 @@
 ####################################################################
 - name: Retrieve kubeconfig from master
   hosts: master
-  become: yes
   tasks:
     - name: Fetch kubeconfig
+      become: yes
       ansible.builtin.fetch:
         src: /etc/rancher/k3s/k3s.yaml
-        dest: ./kubeconfig
+        dest: "{{ lookup('env','HOME') }}/kubeconfig"
         flat: yes
 
 - name: Prepare kubeconfig for local Helm/Kubectl use
@@ -122,16 +122,16 @@
         kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.14.0/cert-manager.yaml
 
 
-#####################################################################
-## 4️⃣ - Install Longhorn (storage)
-#####################################################################
-#- name: Deploy Longhorn
-#  hosts: localhost
-#  become: false
-#  tasks:
-#    - name: Install Longhorn via kubectl
-#      ansible.builtin.shell: |
-#        kubectl apply -f https://raw.githubusercontent.com/longhorn/longhorn/v1.9.3/deploy/longhorn.yaml
+#  ####################################################################
+#  # 4️⃣ - Install Longhorn (storage)
+#  ####################################################################
+#  - name: Deploy Longhorn
+#    hosts: localhost
+#    become: false
+#    tasks:
+#      - name: Install Longhorn via kubectl
+#        ansible.builtin.shell: |
+#          kubectl apply -f https://raw.githubusercontent.com/longhorn/longhorn/v1.9.3/deploy/longhorn.yaml
 
 
 ####################################################################
