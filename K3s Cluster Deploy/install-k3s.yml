@@ -70,22 +70,28 @@
 # 2️⃣ - Install MetalLB
 ####################################################################
 - name: Deploy MetalLB
-  hosts: master
+  hosts: localhost
   become: false
   tasks:
     - name: Add MetalLB Helm repo
-      ansible.builtin.shell: helm repo add metallb https://metallb.github.io/metallb && helm repo update
+      ansible.builtin.command: >
+        helm repo add metallb https://metallb.github.io/metallb
+      ignore_errors: true
+
+    - name: Update Helm repos
+      ansible.builtin.command: helm repo update
 
     - name: Install MetalLB via Helm
-      ansible.builtin.shell: |
-        helm upgrade --install metallb metallb/metallb \
-          --namespace metallb-system --create-namespace
+      ansible.builtin.command: >
+        helm upgrade --install metallb metallb/metallb
+        --namespace metallb-system
+        --create-namespace
       environment:
-        KUBECONFIG: ./kubeconfig
+        KUBECONFIG: "{{ playbook_dir }}/kubeconfig"
 
-    - name: Configure MetalLB address pool
+    - name: Create MetalLB address pool manifest
       ansible.builtin.copy:
-        dest: ./metallb-config.yaml
+        dest: "{{ playbook_dir }}/metallb-config.yaml"
         content: |
           apiVersion: metallb.io/v1beta1
           kind: IPAddressPool
@@ -101,12 +107,13 @@
           metadata:
             name: l2adv
             namespace: metallb-system
-      delegate_to: localhost
 
     - name: Apply MetalLB address pool config
-      ansible.builtin.shell: kubectl apply -f ./metallb-config.yaml
+      ansible.builtin.command: >
+        kubectl apply -f {{ playbook_dir }}/metallb-config.yaml
       environment:
-        KUBECONFIG: ./kubeconfig
+        KUBECONFIG: "{{ playbook_dir }}/kubeconfig"
+
 
 
 ####################################################################
