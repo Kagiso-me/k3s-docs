@@ -72,7 +72,7 @@ Traefik is configured with custom values extracted from an Ansible playbook.
 helm repo add traefik https://traefik.github.io/charts
 helm repo update
 helm upgrade --install traefik traefik/traefik \
-  --namespace kube-system \
+  --namespace traefik \
   --create-namespace \
   --values traefik-values.yaml
 ```
