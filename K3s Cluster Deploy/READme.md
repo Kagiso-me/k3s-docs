@@ -127,6 +127,7 @@ Now that the nodes are prepped, let’s install K3s using a playbook - fully aut
 ```yaml
 
 ---
+---
 - name: Install K3s on master
   hosts: master
   become: yes
@@ -137,7 +138,6 @@ Now that the nodes are prepped, let’s install K3s using a playbook - fully aut
           --tls-san 10.0.10.11 \
           --disable traefik \
           --disable servicelb \
-          --disable local-storage \
           --write-kubeconfig-mode 644" sh -s -
       args:
         creates: /usr/local/bin/k3s
@@ -226,6 +226,76 @@ Now that the nodes are prepped, let’s install K3s using a playbook - fully aut
         regexp: 'export PATH=.*\.local/bin'
         line: 'export PATH="$HOME/.local/bin:$PATH"'
         insertafter: EOF
+
+    # ------------------------------------------------------
+    # kubernetes dashboard installation
+    # ------------------------------------------------------
+
+- name: Deploy Kubernetes Dashboard via Helm
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    namespace: kubernetes-dashboard
+    dashboard_release: kubernetes-dashboard
+    dashboard_host: dashboard.local.kagiso.me
+    tls_secret: local-kagiso-me-staging-tls
+
+  tasks:
+
+    - name: Add Kubernetes Dashboard Helm repo
+      ansible.builtin.command:
+        cmd: helm repo add kubernetes-dashboard https://kubernetes.github.io/dashboard/
+        creates: ~/.cache/helm/repository/kubernetes-dashboard-index.yaml
+
+    - name: Update Helm repos
+      ansible.builtin.command:
+        cmd: helm repo update
+
+    - name: Install / Upgrade Kubernetes Dashboard via Helm
+      ansible.builtin.command:
+        cmd: >
+          helm upgrade --install {{ dashboard_release }} kubernetes-dashboard/kubernetes-dashboard
+          --namespace {{ namespace }}
+          --create-namespace
+          --set fullnameOverride={{ dashboard_release }}
+          --set metricsScraper.enabled=true
+          --set ingress.enabled=true
+          --set ingress.hosts[0].host={{ dashboard_host }}
+          --set ingress.hosts[0].paths[0].path=/
+          --set ingress.hosts[0].paths[0].pathType=Prefix
+          --set ingress.tls[0].hosts[0]={{ dashboard_host }}
+          --set ingress.tls[0].secretName={{ tls_secret }}
+          --set protocolHttp=false
+
+    - name: Create admin service account
+      ansible.builtin.command:
+        cmd: kubectl create serviceaccount dashboard-admin-sa -n {{ namespace }}
+      ignore_errors: yes
+
+    - name: Create clusterrolebinding for admin user
+      ansible.builtin.command:
+        cmd: kubectl create clusterrolebinding dashboard-admin-sa --clusterrole=cluster-admin --serviceaccount={{ namespace }}:dashboard-admin-sa
+      ignore_errors: yes
+
+# ----------------------------------------------------------
+# Trigger K3s bootstrap script after installation
+# ----------------------------------------------------------
+- name: Run K3s bootstrap script (cert-manager, MetalLB, Traefik, ArgoCD)
+  hosts: localhost
+  become: yes
+  vars:
+    bootstrap_script_path: "./bootstrap-k3s.sh"  # adjust path if needed
+  tasks:
+    - name: Ensure bootstrap script is executable
+      ansible.builtin.file:
+        path: "{{ bootstrap_script_path }}"
+        mode: '0755'
+
+    - name: Execute bootstrap script
+      ansible.builtin.shell: "{{ bootstrap_script_path }}"
+      args:
+        executable: /bin/bash
 
 ```
 
