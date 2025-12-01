@@ -78,9 +78,6 @@ Running this playbook fully provisions a K3s cluster with master and workers, co
 ## K3s Playbook & Bootstrap Flow 🖥️🌐
 
 ```mermaid
-## K3s Playbook & Bootstrap Flow  🚀🖥️
-
-```mermaid
 flowchart TD
     %% Ansible Controller
     subgraph Ansible_Controller[💻 Ansible Controller / localhost]
@@ -134,7 +131,6 @@ flowchart TD
     K --> L
     L --> M
     M --> N
-
 ```
 
 ### How It Works:
