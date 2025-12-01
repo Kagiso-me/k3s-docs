@@ -108,32 +108,3 @@ Backup directories are separated by type:
 
 ## 6. Visual Flow of Backups
 
-```mermaid
-flowchart TD
-    subgraph Cluster
-        Tywin[Tywin (Master)]
-        Jaime[Jaime (Worker)]
-        Tyrion[Tyrion (Worker)]
-    end
-
-    subgraph NFS["TrueNAS Backup Share\n/mnt/tera/backups/k3s"]
-        Snapshots[Snapshots/]
-        Manifests[Manifests/]
-        Nodes[Nodes/]
-        PV[PV/]
-    end
-
-    %% Etcd snapshots
-    Tywin -->|Daily etcd snapshot| Snapshots
-
-    %% Manifests
-    Tywin -->|Daily manifests export| Manifests
-
-    %% Worker agent backup
-    Tywin -->|Rsync agent directories| Nodes
-    Jaime -->|agent data| Tywin
-    Tyrion -->|agent data| Tywin
-
-    %% PV backup
-    Tywin -->|Rsync PV data| PV
-```
