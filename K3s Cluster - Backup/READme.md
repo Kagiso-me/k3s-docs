@@ -120,3 +120,11 @@ Diagram to be uploaded!
 
 ---
 
+
+## 6. Central Logging of All Cronjobs
+- **All cronjobs write output to: 
+```bash
+/var/log/k3s-backups.log
+```
+
+---

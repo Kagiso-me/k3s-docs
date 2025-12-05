@@ -22,39 +22,58 @@ This section explains the **Ansible playbook** used to automate K3s backups to a
   hosts: k3s_all
   become: yes
   vars:
-    truenas_nfs: "10.0.10.8:/mnt/tera/backups/k3s"
+    truenas_nfs: "10.0.10.80:/mnt/tera/backups/k3s"
     mount_point: "/mnt/backup-tera"
 
     k3s_snapshots_dir: "/var/lib/rancher/k3s/server/db/snapshots"
     k3s_manifests_dir: "{{ mount_point }}/manifests"
     k3s_nodes_dir: "{{ mount_point }}/nodes"
     k3s_pv_backup: "{{ mount_point }}/pv"
+    log_file: "/var/log/k3s-backups.log"
+
+    kubectl_bin: "/usr/local/bin/kubectl"
 
     cron_jobs:
       - name: "Daily etcd snapshot"
         minute: "0"
         hour: "2"
-        job: "k3s etcd-snapshot save --name snapshot-$(date +\\%F_\\%H-\\%M-\\%S).db && rsync -avz {{ k3s_snapshots_dir }}/ {{ mount_point }}/snapshots/"
+        job: >
+          k3s etcd-snapshot save
+          --name snapshot-$(date +\%F_\%H-\%M-\%S).db &&
+          rsync -avz {{ k3s_snapshots_dir }}/ {{ mount_point }}/snapshots/
+          >> {{ log_file }} 2>&1
+
       - name: "Daily manifests backup"
         minute: "0"
         hour: "3"
-        job: "kubectl get all --all-namespaces -o yaml > {{ k3s_manifests_dir }}/k3s-all-resources-$(date +\\%F).yaml"
-      - name: "Daily worker agent backup (Tywin only)"
+        job: >
+          {{ kubectl_bin }} get all --all-namespaces -o yaml >
+          {{ k3s_manifests_dir }}/k3s-all-resources-$(date +\%F).yaml
+          >> {{ log_file }} 2>&1
+
+      - name: "Daily worker agent backup"
         minute: "0"
         hour: "4"
-        job: "rsync -avz jaime@10.0.10.12:/var/lib/rancher/k3s/agent {{ k3s_nodes_dir }}/jaime/ && rsync -avz tyrion@10.0.10.13:/var/lib/rancher/k3s/agent {{ k3s_nodes_dir }}/tyrion/"
+        job: >
+          rsync -avz jaime@10.0.10.12:/var/lib/rancher/k3s/agent {{ k3s_nodes_dir }}/jaime/ &&
+          rsync -avz tyrion@10.0.10.13:/var/lib/rancher/k3s/agent {{ k3s_nodes_dir }}/tyrion/
+          >> {{ log_file }} 2>&1
+
       - name: "Daily PV backup"
         minute: "0"
         hour: "5"
-        job: "rsync -avz /mnt/nfs-pv/ {{ k3s_pv_backup }}/"
+        job: >
+          rsync -avz /mnt/nfs-pv/ {{ k3s_pv_backup }}/
+          >> {{ log_file }} 2>&1
 
   tasks:
+
     - name: Mount TrueNAS NFS share (Tywin only)
       mount:
         path: "{{ mount_point }}"
         src: "{{ truenas_nfs }}"
         fstype: nfs
-        opts: defaults,_netdev
+        opts: defaults,_netdev,nfsvers=4
         state: mounted
       when: inventory_hostname == "tywin"
 
@@ -71,6 +90,13 @@ This section explains the **Ansible playbook** used to automate K3s backups to a
         - "{{ k3s_pv_backup }}"
       when: inventory_hostname == "tywin"
 
+    - name: Ensure log file exists (Tywin only)
+      file:
+        path: "{{ log_file }}"
+        state: touch
+        mode: '0644'
+      when: inventory_hostname == "tywin"
+
     - name: Setup cron jobs for backups (Tywin only)
       cron:
         name: "{{ item.name }}"
@@ -78,6 +104,7 @@ This section explains the **Ansible playbook** used to automate K3s backups to a
         hour: "{{ item.hour }}"
         job: "{{ item.job }}"
         user: root
+        state: present
       loop: "{{ cron_jobs }}"
       when: inventory_hostname == "tywin"
 ```
