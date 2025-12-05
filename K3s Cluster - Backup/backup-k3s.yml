@@ -4,7 +4,7 @@
   become: yes
   vars:
     # TrueNAS NFS server and export
-    truenas_nfs: "10.0.10.8:/mnt/tera/backups/k3s"
+    truenas_nfs: "10.0.10.80:/mnt/tera/backups/k3s"
     mount_point: "/mnt/backup-tera"
 
     # K3s backup directories under the mounted NFS
@@ -66,4 +66,5 @@
         job: "{{ item.job }}"
         user: root
       loop: "{{ cron_jobs }}"
+
       when: inventory_hostname == "tywin"
