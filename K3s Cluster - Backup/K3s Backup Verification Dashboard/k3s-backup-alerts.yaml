@@ -1,0 +1,30 @@
+groups:
+- name: k3s-backup-alerts
+  rules:
+
+  - alert: K3sEtcdSnapshotStale
+    expr: time() - k3s_backup_last_mtime{type="etcd_snapshot"} > 86400
+    for: 10m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Etcd snapshot older than 24 hours"
+      description: "No recent etcd snapshot detected on Tywin."
+
+  - alert: K3sManifestBackupStale
+    expr: time() - k3s_backup_last_mtime{type="manifests"} > 86400
+    for: 10m
+    labels:
+      severity: warning
+
+  - alert: K3sNodeBackupStale
+    expr: time() - k3s_backup_last_mtime{type=~"node_.*"} > 86400
+    for: 10m
+    labels:
+      severity: critical
+
+  - alert: K3sPVBackupStale
+    expr: time() - k3s_backup_last_mtime{type="pv_backup"} > 86400
+    for: 10m
+    labels:
+      severity: warning
