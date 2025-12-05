@@ -22,7 +22,7 @@ This section explains the **Ansible playbook** used to automate K3s backups to a
   hosts: k3s_all
   become: yes
   vars:
-    truenas_nfs: "10.0.10.8:/mnt/tera/backups/k3s"
+    truenas_nfs: "10.0.10.80:/mnt/tera/backups/k3s"
     mount_point: "/mnt/backup-tera"
 
     k3s_snapshots_dir: "/var/lib/rancher/k3s/server/db/snapshots"
