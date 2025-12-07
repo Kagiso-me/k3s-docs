@@ -1,0 +1,13 @@
+apiVersion: external-secrets.io/v1beta1
+kind: ClusterSecretStore
+metadata:
+  name: vault-backend
+spec:
+  vault:
+    server: "https://vault.kagiso.me:8200"
+    path: "kv/data"
+    auth:
+      token:
+        secretRef:
+          name: vault-token
+          key: token
