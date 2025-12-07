@@ -314,3 +314,41 @@ spec:
 ```
 
 (Other manifests for MariaDB and Redis remain unchanged)
+
+
+ ┌─────────────────────┐
+ │   Kubernetes Pod    │
+ │  (App: Nextcloud,   │
+ │   MariaDB, Redis,   │
+ │   PostgreSQL client)│
+ │                     │
+ │  ServiceAccount     │
+ │  token mounted      │
+ └─────────┬───────────┘
+           │
+           │ 1️⃣ Pod requests secret via ExternalSecrets
+           ▼
+ ┌─────────────────────┐
+ │ ExternalSecrets     │
+ │ Operator (ESO)      │
+ │ in K3s cluster      │
+ └─────────┬───────────┘
+           │
+           │ 2️⃣ ESO authenticates to Vault using
+           │    ClusterSecretStore (token)
+           ▼
+ ┌─────────────────────┐
+ │ Vault Server        │
+ │ (running on RPi)    │
+ │                     │
+ │ DB plugin configured│
+ │ for PostgreSQL      │
+ └─────────┬───────────┘
+           │
+           │ 3️⃣ Vault connects to PostgreSQL
+           │    via external IP (MetalLB LoadBalancer)
+           ▼
+ ┌─────────────────────┐
+ │ PostgreSQL Service  │
+ │ (K3s cluster)       │
+ └─────────────────────┘
