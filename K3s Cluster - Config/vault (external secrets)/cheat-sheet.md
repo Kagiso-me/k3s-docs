@@ -56,92 +56,127 @@ spec:
 * `path` → Vault KV engine path
 * `secretRef` → Kubernetes Secret storing the Vault token
 
+
 ---
 
-## 3️⃣ Define an ExternalSecret
+## Dynamic Secrets
+
+Vault can generate temporary credentials for databases, cloud services, or APIs.
+
+
+### Dynamic PostgreSQL Secret Example
+
+```bash
+vault secrets enable database
+
+vault write database/config/pg \
+    plugin_name=postgresql-database-plugin \
+    allowed_roles="pg-app" \
+    connection_url="postgresql://{{username}}:{{password}}@postgres:5432/postgres?sslmode=disable" \
+    username="postgres" \
+    password="postgrespassword"
+
+vault write database/roles/pg-app \
+    db_name=pg \
+    creation_statements="CREATE ROLE \"{{name}}\" WITH LOGIN PASSWORD '{{password}}' VALID UNTIL '{{expiration}}'; GRANT ALL PRIVILEGES ON DATABASE postgres TO \"{{name}}\";" \
+    default_ttl="30m" \
+    max_ttl="1h"
+```
+**ExternalSecret example to sync dynamic PostgreSQL creds:**
 
 ```yaml
 apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
 metadata:
-  name: my-db-secret
+  name: pg-credentials
 spec:
-  refreshInterval: 1h
+  refreshInterval: 5m
   secretStoreRef:
     name: vault-backend
     kind: ClusterSecretStore
   target:
-    name: my-db-secret
+    name: pg-credentials
     creationPolicy: Owner
   data:
     - secretKey: username
       remoteRef:
-        key: kv/data/database
+        key: database/creds/pg-app
         property: username
     - secretKey: password
       remoteRef:
-        key: kv/data/database
+        key: database/creds/pg-app
         property: password
 ```
-
-Secrets are automatically synced from Vault to the Kubernetes Secret `my-db-secret`.
-
----
-
-## 4️⃣ Use the Secret in a Pod
+### PostgreSQL Deployment (dynamic credentials)
 
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: demo-app
+  name: postgres
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: demo-app
+      app: postgres
   template:
     metadata:
       labels:
-        app: demo-app
+        app: postgres
     spec:
       containers:
-      - name: demo-app
-        image: alpine:latest
-        command: ["/bin/sh", "-c"]
-        args:
-          - echo "DB_USER=$DB_USER, DB_PASSWORD=$DB_PASSWORD" && sleep infinity
+      - name: postgres
+        image: postgres:latest
         env:
-        - name: DB_USER
+        - name: POSTGRES_USER
           valueFrom:
             secretKeyRef:
-              name: my-db-secret
+              name: pg-credentials
               key: username
-        - name: DB_PASSWORD
+        - name: POSTGRES_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: my-db-secret
+              name: pg-credentials
               key: password
 ```
 
-* Pod consumes the secret **as a normal Kubernetes Secret**. No Vault Agent or sidecar is needed.
+* ESO will fetch new credentials as Vault rotates them.
+* Mount as a file or env vars in your pod to consume updated credentials.
+
+### Dynamic Secrets Pros & Cons
+
+**Pros:**
+
+* Minimizes blast radius if a pod is compromised
+* Automatic expiration and rotation
+* No hardcoded secrets
+
+**Cons:**
+
+* Requires operator sync interval to match TTL for short-lived secrets
+* Environment variable updates require pod restart or reload mechanism
 
 ---
 
-## 5️⃣ Quick Test
+## Kubernetes Authentication
+
+Pods authenticate to Vault using ServiceAccount tokens:
 
 ```bash
-kubectl exec -it <demo-app-pod> -- env | grep DB_
+vault auth enable kubernetes
+
+vault write auth/kubernetes/config \
+    token_reviewer_jwt="$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" \
+    kubernetes_host="https://$KUBERNETES_PORT_443_TCP_ADDR:443" \
+    kubernetes_ca_cert=@/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+
+vault write auth/kubernetes/role/k3s-app \
+    bound_service_account_names=app-sa \
+    bound_service_account_namespaces=default \
+    policies=myapp-policy \
+    ttl=1h
 ```
 
-Expected output:
-
-```
-DB_USER=dbuser
-DB_PASSWORD=supersecret
-```
-
----
 
 ## 6️⃣ Tips
 
