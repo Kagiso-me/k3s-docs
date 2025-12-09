@@ -1,23 +1,4 @@
-## 8️⃣ Ansible Playbook: Automating K3s Backups 🛠️
-
-This section explains the **Ansible playbook** used to automate K3s backups to a TrueNAS NFS share. Using Ansible ensures that **all steps are reproducible, consistent, and maintainable**, without relying on manual commands on each node.
-
----
-
-### Why Use an Ansible Playbook?
-
-- **Consistency:** Ensures the same backup setup across all K3s nodes.  
-- **Automation:** Cron jobs, directory creation, and NFS mounting happen automatically.  
-- **Idempotency:** Running the playbook multiple times does not break existing setup.  
-- **Centralized control:** Only Tywin (the master node) handles NFS mounting and backup orchestration, avoiding conflicts.  
-- **Auditability:** All tasks are documented in YAML, easy to review or version in GitHub.
-
----
-
-### Overview of the Playbook
-
 ```yaml
-
 ---
 - name: Setup K3s Backups and Metrics on Tywin
   hosts: tywin
@@ -112,38 +93,4 @@ This section explains the **Ansible playbook** used to automate K3s backups to a
             enabled: yes
             state: started
           loop: "{{ systemd_services }}"
-```
-
-## 9️⃣ Ansible Playbook Flow Diagram 🌐
-
-This diagram visualizes how the Ansible playbook automates K3s backups:
-
-```mermaid
-flowchart TD
-    subgraph Tywin["Tywin (Master Node)"]
-        A[Mount TrueNAS NFS Share]
-        B[Create Backup Directories & Log File]
-        C[Start Systemd Timers]
-    end
-
-    subgraph BackupTypes["Backup Targets"]
-        D[Manifests Backup]
-        E[Worker Node Backup]
-        F[Persistent Volume Backup]
-        G[Backup Metrics → Prometheus]
-    end
-
-    %% Flow arrows
-    A --> B --> C
-    C --> D
-    C --> E
-    C --> F
-    C --> G
-
-    %% Nodes explanation
-    click D href "#" "Manifests backup script: /usr/local/bin/k3s_manual_backup.sh"
-    click E href "#" "Worker node backup script: /usr/local/bin/k3s_manual_backup.sh"
-    click F href "#" "PV backup script: /usr/local/bin/k3s_manual_backup.sh"
-    click G href "#" "Metrics update script: /usr/local/bin/k3s_backup_metrics.sh"
-
 ```
