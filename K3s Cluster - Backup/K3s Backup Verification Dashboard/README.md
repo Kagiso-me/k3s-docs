@@ -1,16 +1,15 @@
 # K3s Backup Verification Dashboard
 
-This folder contains a Grafana dashboard JSON and supporting metrics approach to
-**verify K3s backups** running on Tywin and stored on a TrueNAS NFS share.
+This folder contains a Grafana dashboard JSON and supporting metrics approach to **verify K3s backups** running on Tywin and stored on a TrueNAS NFS share.
 
 The goal is to provide **fast visual confirmation** that:
 
-- Etcd snapshots are running daily
-- Cluster manifests are exported daily
-- Worker node agent data is synced
-- Persistent Volume data is synced
-- Backup sizes look sane over time
-- Backups are not stale or missing
+* Etcd snapshots are running daily
+* Cluster manifests are exported daily
+* Worker node agent data is synced
+* Persistent Volume data is synced
+* Backup sizes look sane over time
+* Backups are not stale or missing
 
 ---
 
@@ -18,14 +17,15 @@ The goal is to provide **fast visual confirmation** that:
 
 You should already have:
 
-- **K3s** running on Tywin (master) with backups going to:
-  - `/mnt/backup-tera/snapshots`
-  - `/mnt/backup-tera/manifests`
-  - `/mnt/backup-tera/nodes/{jaime,tyrion}`
-  - `/mnt/backup-tera/pv`
-- **Node Exporter** running on Tywin
-- **Prometheus** scraping Node Exporter
-- **Grafana** connected to Prometheus
+* **K3s** running on Tywin (master) with backups going to:
+
+  * `/mnt/backup-tera/k3s/snapshots`
+  * `/mnt/backup-tera/k3s/manifests`
+  * `/mnt/backup-tera/k3s/nodes/{jaime,tyrion}`
+  * `/mnt/backup-tera/k3s/pv`
+* **Node Exporter** running on Tywin
+* **Prometheus** scraping Node Exporter
+* **Grafana** connected to Prometheus
 
 Additionally, you need to:
 
@@ -43,19 +43,25 @@ On **Tywin**, configure node_exporter to use a textfile directory, e.g.:
 ```bash
 sudo mkdir -p /var/lib/node_exporter/textfile_collector
 ```
+
 If you run node_exporter via systemd, ensure the service has:
+
 ```text
 --collector.textfile.directory=/var/lib/node_exporter/textfile_collector
 ```
+
 Then restart node_exporter.
 
 ## 2. Backup Metrics Script
 
-Create:
+Create the metrics script:
 
 ```bash
-sudo nano /usr/local/bin/k3s-backup-metrics.sh
+sudo nano /usr/local/bin/k3s_backup_metrics.sh
 ```
+
+Paste the following:
+
 ```bash
 #!/bin/bash
 
@@ -66,15 +72,17 @@ mtime() {
   stat -c %Y "$1" 2>/dev/null || echo 0
 }
 
+# write last modified times
 echo "# HELP k3s_backup_last_mtime Last backup file modification times" > "$OUT"
 echo "# TYPE k3s_backup_last_mtime gauge" >> "$OUT"
 
-echo "k3s_backup_last_mtime{type=\"etcd_snapshot\"} $(mtime /mnt/backup-tera/snapshots)" >> "$OUT"
-echo "k3s_backup_last_mtime{type=\"manifests\"} $(mtime /mnt/backup-tera/manifests)" >> "$OUT"
-echo "k3s_backup_last_mtime{type=\"node_jaime\"} $(mtime /mnt/backup-tera/nodes/jaime)" >> "$OUT"
-echo "k3s_backup_last_mtime{type=\"node_tyrion\"} $(mtime /mnt/backup-tera/nodes/tyrion)" >> "$OUT"
-echo "k3s_backup_last_mtime{type=\"pv_backup\"} $(mtime /mnt/backup-tera/pv)" >> "$OUT"
+echo "k3s_backup_last_mtime{type=\"etcd_snapshot\"} $(mtime /mnt/backup-tera/k3s/snapshots)" >> "$OUT"
+echo "k3s_backup_last_mtime{type=\"manifests\"} $(mtime /mnt/backup-tera/k3s/manifests)" >> "$OUT"
+echo "k3s_backup_last_mtime{type=\"node_jaime\"} $(mtime /mnt/backup-tera/k3s/nodes/jaime)" >> "$OUT"
+echo "k3s_backup_last_mtime{type=\"node_tyrion\"} $(mtime /mnt/backup-tera/k3s/nodes/tyrion)" >> "$OUT"
+echo "k3s_backup_last_mtime{type=\"pv_backup\"} $(mtime /mnt/backup-tera/k3s/pv)" >> "$OUT"
 
+# write directory sizes
 echo "" >> "$OUT"
 echo "# HELP k3s_backup_dir_size Backup directory sizes in bytes" >> "$OUT"
 echo "# TYPE k3s_backup_dir_size gauge" >> "$OUT"
@@ -83,15 +91,16 @@ du_size() {
   du -sb "$1" 2>/dev/null | awk '{print $1}'
 }
 
-echo "k3s_backup_dir_size{type=\"etcd_snapshot\"} $(du_size /mnt/backup-tera/snapshots)" >> "$OUT"
-echo "k3s_backup_dir_size{type=\"manifests\"} $(du_size /mnt/backup-tera/manifests)" >> "$OUT"
-echo "k3s_backup_dir_size{type=\"nodes\"} $(du_size /mnt/backup-tera/nodes)" >> "$OUT"
-echo "k3s_backup_dir_size{type=\"pv_backup\"} $(du_size /mnt/backup-tera/pv)" >> "$OUT"
+echo "k3s_backup_dir_size{type=\"etcd_snapshot\"} $(du_size /mnt/backup-tera/k3s/snapshots)" >> "$OUT"
+echo "k3s_backup_dir_size{type=\"manifests\"} $(du_size /mnt/backup-tera/k3s/manifests)" >> "$OUT"
+echo "k3s_backup_dir_size{type=\"nodes\"} $(du_size /mnt/backup-tera/k3s/nodes)" >> "$OUT"
+echo "k3s_backup_dir_size{type=\"pv_backup\"} $(du_size /mnt/backup-tera/k3s/pv)" >> "$OUT"
 ```
 
 Make it executable:
+
 ```bash
-sudo chmod +x /usr/local/bin/k3s-backup-metrics.sh
+sudo chmod +x /usr/local/bin/k3s_backup_metrics.sh
 ```
 
 ## 3. Cron Job for Metrics
@@ -101,20 +110,21 @@ Run the metrics script every 5 minutes so Prometheus sees fresh values:
 ```bash
 sudo crontab -e
 ```
+
 Add:
 
 ```cron
-*/5 * * * * /usr/local/bin/k3s-backup-metrics.sh
+*/5 * * * * /usr/local/bin/k3s_backup_metrics.sh
 ```
 
 Now Node Exporter exposes metrics:
-    - k3s_backup_last_mtime{type="..."}
-    - k3s_backup_dir_size{type="..."}
 
+* k3s_backup_last_mtime{type="..."}
+* k3s_backup_dir_size{type="..."}
 
 ## 4. Optional: Prometheus Alert Rules
 
-Example alert rules file (k3s-backup-alerts.yaml):
+Example alert rules file (`k3s-backup-alerts.yaml`):
 
 ```yaml
 groups:
@@ -147,22 +157,26 @@ groups:
     for: 10m
     labels:
       severity: warning
-
 ```
 
-Add this to your Prometheus config rule_files and reload Prometheus.
+Add this to your Prometheus `rule_files` and reload Prometheus.
 
 
-## 5. Importing the Grafana Dashboard
+---
+
+
+## 5. Grafana Dashboard
 
     1. Open Grafana
     2. Go to Dashboards → Import
     3. Paste the JSON from k3s-backup-verification-dashboard.json
     4. When prompted for a data source, select your Prometheus instance
     5. Click Import
+  Paste **k3s-backup-verification-dashboard.json**
+    
 
 
-## 6. What the Dashboard Shows
+## What the Dashboard Shows
 The dashboard includes:
     -   Etcd Snapshot Age (hours) — stat panel, green/yellow/red thresholds
     -   Manifests Backup Age (hours)
@@ -176,14 +190,7 @@ detail to debug if something looks off.
 
 ---
 
-
-
----
-
-## 2️⃣ Grafana Dashboard JSON
-
-Paste this into **Grafana → Dashboards → Import → “Import via panel json”**:
-
+k3s-backup-verification-dashboard.json
 ```json
 {
   "annotations": {
