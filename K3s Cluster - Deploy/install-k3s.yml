@@ -98,3 +98,28 @@
         regexp: 'export PATH=.*\.local/bin'
         line: 'export PATH="$HOME/.local/bin:$PATH"'
         insertafter: EOF
+
+    # ------------------------------------------------------
+    # Run K3s bootstrap script as kagiso
+    # ------------------------------------------------------
+
+- name: Run K3s bootstrap script
+  hosts: localhost
+  tasks:
+
+    - name: Ensure script is executable (needs root only if permissions are restricted)
+      ansible.builtin.file:
+        path: "{{ playbook_dir }}/bootstrap-k3s.sh"
+        mode: '0755'
+      become: yes
+
+    - name: Run the K3s bootstrap script as kagiso
+      ansible.builtin.shell: |
+        export HOME="/home/kagiso"
+        export KUBECONFIG="/home/kagiso/.kube/config"
+        export PATH="$HOME/.local/bin:$PATH"
+        bash "{{ playbook_dir }}/bootstrap-k3s.sh"
+      args:
+        executable: /bin/bash
+      become: yes
+      become_user: kagiso
