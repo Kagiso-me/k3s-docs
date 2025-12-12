@@ -114,7 +114,7 @@ Each provisioner requires its own values YAML.
 
 ```yaml
 nfs:
-  server: 10.0.1.20
+  server: 10.0.10.80
   path: /mnt/core/k3s/config
 
 storageClass:
@@ -140,7 +140,7 @@ helm install nfs-core-config \
 
 ```yaml
 nfs:
-  server: 10.0.1.20
+  server: 10.0.10.80
   path: /mnt/core/k3s/database
 
 storageClass:
@@ -166,7 +166,7 @@ helm install nfs-core-db \
 
 ```yaml
 nfs:
-  server: 10.0.1.20
+  server: 10.0.10.80
   path: /mnt/core/k3s/app_data
 
 storageClass:
