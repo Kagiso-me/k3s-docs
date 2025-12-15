@@ -1,4 +1,3 @@
-```yaml
 ---
 - name: Setup K3s Backups and Metrics on Tywin
   hosts: tywin
@@ -93,4 +92,3 @@
             enabled: yes
             state: started
           loop: "{{ systemd_services }}"
-```
