@@ -58,14 +58,14 @@ CrowdSec works in **two main layers**:
 ### Architecture Diagram
 
 ```
-          ┌───────────────┐
-          │   Internet    │
-          └─────┬─────────┘
+         ┌───────────────┐
+         │   Internet    │
+         └──────┬────────┘
                 │
-      ┌─────────▼─────────┐
-      │ Raspberry Pi Edge │
-      │ CrowdSec Bouncer  │
-      └─────────┬─────────┘
+      ┌─────────▼──────────┐
+      │ Raspberry Pi Edge  │
+      │ CrowdSec Bouncer   │
+      └─────────┬──────────┘
                 │
         ┌───────▼─────────┐
         │ k3s Cluster     │
@@ -73,8 +73,8 @@ CrowdSec works in **two main layers**:
         │ Traefik Ingress │
         └───────┬─────────┘
                 │
-  ┌─────────────┴─────────────┐
-  │ Nextcloud | Immich | WordPress │
+  ┌─────────────▼─────────────────┐
+  │ Nextcloud | Immich | WordPress│
   └───────────────────────────────┘
 ```
 
@@ -97,22 +97,22 @@ Coming...
 
 
 ```yaml
-        ┌───────────────┐
-        │   Internet    │
-        └─────┬─────────┘
+      ┌───────────────┐
+      │   Internet    │
+      └───────┬───────┘
               │
     ┌─────────▼─────────┐
     │ Pi Edge: Bouncer  │
     └─────────┬─────────┘
               │
-      ┌───────▼─────────┐
-      │ Traefik Ingress │
-      │ Authentik FW Middleware │
-      └───────┬─────────┘
-              │
- ┌────────────┴────────────┐
- │ Apps: Nextcloud, Immich, WordPress │
- └─────────────────────────┘
+    ┌─────────▼───────────────┐
+    │   Traefik Ingress       │
+    │ Authentik FW Middleware │
+    └──────────┬──────────────┘
+               │
+┌──────────────▼─────────────────────┐
+│ Apps: Nextcloud, Immich, WordPress │
+└────────────────────────────────────┘
 
 ```
 Coming...
