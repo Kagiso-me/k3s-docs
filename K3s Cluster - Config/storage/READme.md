@@ -141,7 +141,7 @@ helm install nfs-core-config \
 ```yaml
 nfs:
   server: 10.0.10.80
-  path: /mnt/core/k3s/database
+  path: /mnt/core/k3s/databases
 
 storageClass:
   name: nfs-core-db
