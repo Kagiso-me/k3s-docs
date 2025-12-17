@@ -1,6 +1,7 @@
 # Homelab Edge Security
 
-## Multi layered security approach to securty
+
+### Multi layered security approach to securty
 
 ### 🧠 CrowdSec + Raspberry Pi Bouncer
 
