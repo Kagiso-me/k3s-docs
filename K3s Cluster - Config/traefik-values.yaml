@@ -2,12 +2,9 @@ globalArguments:
   - "--global.sendanonymoususage=false"
   - "--global.checknewversion=false"
 
-args:
+additionalArguments:
   - "--accesslog=true"
   - "--accesslog.filepath=/var/log/traefik/access.log"
-
-
-additionalArguments:
   - "--serversTransport.insecureSkipVerify=true"
   - "--log.level=INFO"
   - "--entrypoints.websecure.forwardedHeaders.insecure=true"

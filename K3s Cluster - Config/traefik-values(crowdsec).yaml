@@ -2,13 +2,11 @@ globalArguments:
   - "--global.sendanonymoususage=false"
   - "--global.checknewversion=false"
 
-args:
+additionalArguments:
   - "--accesslog=true"
   - "--accesslog.filepath=/var/log/traefik/access.log"
-
-
-additionalArguments:
   - "--serversTransport.insecureSkipVerify=true"
+  - "--accesslog.format=json"
   - "--log.level=INFO"
   - "--entrypoints.websecure.forwardedHeaders.insecure=true"
   - "--entrypoints.web.forwardedHeaders.insecure=true"
@@ -58,6 +56,21 @@ ports:
     tls:
       enabled: true
 
+additionalVolumeMounts:
+  - name: traefik-logs
+    mountPath: /var/log/traefik
+
+additionalVolumes:
+  - name: traefik-logs
+    persistentVolumeClaim:
+      claimName: traefik-logs-pvc
+
+ingressRoute:
+  dashboard:
+    enabled: false
+    entryPoints:
+      - websecure
+    matchRule: Host(`traefik.local.kagiso.me`)
 
 providers:
   kubernetesCRD:
@@ -86,13 +99,3 @@ service:
     loadBalancerIP: 10.0.10.110 # this should be an IP in the MetalLB range
   loadBalancerSourceRanges: []
   externalIPs: []
-
-logs:
-  enabled: true
-  service:
-    enabled: false
-  persistence:
-    enabled: true
-    name: traefik-logs
-    path: /var/log/traefik
-    size: 2Gi
