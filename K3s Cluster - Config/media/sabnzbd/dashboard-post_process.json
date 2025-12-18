@@ -1,0 +1,36 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "panels": [
+    {
+      "type": "graph",
+      "title": "Jellyfin Video Conversion Metrics",
+      "targets": [
+        {
+          "expr": "sabnzbd_jellyfin_total",
+          "legendFormat": "Total processed",
+          "refId": "A"
+        },
+        {
+          "expr": "sabnzbd_jellyfin_converted",
+          "legendFormat": "Converted",
+          "refId": "B"
+        },
+        {
+          "expr": "sabnzbd_jellyfin_skipped",
+          "legendFormat": "Skipped",
+          "refId": "C"
+        },
+        {
+          "expr": "sabnzbd_jellyfin_failed",
+          "legendFormat": "Failed",
+          "refId": "D"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 30,
+  "title": "Jellyfin Post-Processing Dashboard",
+  "version": 1
+}
