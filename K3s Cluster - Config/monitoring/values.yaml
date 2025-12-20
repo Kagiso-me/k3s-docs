@@ -1,18 +1,33 @@
+# ==========================
+# kube-prometheus-stack values
+# ==========================
+
+# --------------------------
+# Grafana configuration
+# --------------------------
 grafana:
   enabled: true
   adminUser: admin
-  adminPassword: admin  # change immediately after first login
+  adminPassword: admin       # CHANGE after first login
+  ingress:
+    enabled: false          # disable all ingress/TLS
   persistence:
     enabled: true
     storageClassName: nfs-core-appdata
     accessModes:
       - ReadWriteMany
     size: 5Gi
+  sidecar:
+    dashboards:
+      enabled: false        # disable dashboards sidecar since no custom dashboards yet
 
+# --------------------------
+# Prometheus configuration
+# --------------------------
 prometheus:
   enabled: true
   prometheusSpec:
-    retention: 15d
+    retention: 90d
     storageSpec:
       volumeClaimTemplate:
         spec:
@@ -21,8 +36,11 @@ prometheus:
             - ReadWriteMany
           resources:
             requests:
-              storage: 20Gi
+              storage: 30Gi
 
+# --------------------------
+# Alertmanager configuration
+# --------------------------
 alertmanager:
   enabled: true
   alertmanagerSpec:
@@ -36,10 +54,14 @@ alertmanager:
             requests:
               storage: 5Gi
 
-# k3s optimizations
+# --------------------------
+# k3s control-plane optimizations
+# --------------------------
 kubeControllerManager:
   enabled: false
+
 kubeScheduler:
   enabled: false
+
 kubeEtcd:
   enabled: false
