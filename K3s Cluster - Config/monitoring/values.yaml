@@ -1,0 +1,45 @@
+grafana:
+  enabled: true
+  adminUser: admin
+  adminPassword: admin  # change immediately after first login
+  persistence:
+    enabled: true
+    storageClassName: nfs-core-appdata
+    accessModes:
+      - ReadWriteMany
+    size: 5Gi
+
+prometheus:
+  enabled: true
+  prometheusSpec:
+    retention: 15d
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: nfs-core-appdata
+          accessModes:
+            - ReadWriteMany
+          resources:
+            requests:
+              storage: 20Gi
+
+alertmanager:
+  enabled: true
+  alertmanagerSpec:
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: nfs-core-appdata
+          accessModes:
+            - ReadWriteMany
+          resources:
+            requests:
+              storage: 5Gi
+
+# k3s optimizations
+kubeControllerManager:
+  enabled: false
+kubeScheduler:
+  enabled: false
+kubeEtcd:
+  enabled: false
