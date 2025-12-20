@@ -1,5 +1,5 @@
 # ==========================
-# kube-prometheus-stack values
+# kube-prometheus-stack values (k3s + pinned images)
 # ==========================
 
 # --------------------------
@@ -8,9 +8,9 @@
 grafana:
   enabled: true
   adminUser: admin
-  adminPassword: admin       # CHANGE after first login
+  adminPassword: admin        # CHANGE after first login
   ingress:
-    enabled: false          # disable all ingress/TLS
+    enabled: false           # disable all ingress/TLS
   persistence:
     enabled: true
     storageClassName: nfs-core-appdata
@@ -19,7 +19,10 @@ grafana:
     size: 5Gi
   sidecar:
     dashboards:
-      enabled: false        # disable dashboards sidecar since no custom dashboards yet
+      enabled: false         # disable dashboards sidecar since no custom dashboards yet
+      image:
+        repository: quay.io/kiwigrid/k8s-sidecar
+        tag: 2.1.1          # pinned stable version
 
 # --------------------------
 # Prometheus configuration
@@ -27,7 +30,7 @@ grafana:
 prometheus:
   enabled: true
   prometheusSpec:
-    retention: 90d
+    retention: 15d
     storageSpec:
       volumeClaimTemplate:
         spec:
@@ -36,7 +39,12 @@ prometheus:
             - ReadWriteMany
           resources:
             requests:
-              storage: 30Gi
+              storage: 20Gi
+  # Pin Prometheus image
+  prometheusSpec:
+    image:
+      repository: quay.io/prometheus/prometheus
+      tag: v2.48.0              # stable Prometheus version
 
 # --------------------------
 # Alertmanager configuration
@@ -53,6 +61,22 @@ alertmanager:
           resources:
             requests:
               storage: 5Gi
+
+# --------------------------
+# Prometheus Operator
+# --------------------------
+prometheusOperator:
+  image:
+    repository: quay.io/prometheus-operator/prometheus-operator
+    tag: v0.87.1               # pinned stable version
+
+# --------------------------
+# Node Exporter
+# --------------------------
+nodeExporter:
+  image:
+    repository: quay.io/prometheus/node-exporter
+    tag: v1.10.1               # pinned stable version
 
 # --------------------------
 # k3s control-plane optimizations
