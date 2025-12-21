@@ -1,9 +1,0 @@
-nfs:
-  server: 10.0.10.80
-  path: "/mnt/core/k3s/app_data"
-
-storageClass:
-  name: nfs-core-appdata
-  defaultClass: false
-  allowVolumeExpansion: true
-  reclaimPolicy: Retain
